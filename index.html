@@ -3,177 +3,129 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>메이플랜드 미로 최단경로 탐색기</title>
+<title>메이플랜드 미로 경로 탐색기</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    min-height: 100vh;
-    background: #0c0c10;
-    font-family: 'Courier New', monospace;
-    color: #e2e8f0;
-    padding: 28px 16px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 24px;
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    min-height:100vh;background:#0c0c10;font-family:'Courier New',monospace;
+    color:#e2e8f0;padding:28px 16px;display:flex;flex-direction:column;align-items:center;gap:24px;
   }
   input[type=number]::-webkit-inner-spin-button,
-  input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
-  input[type=number] { -moz-appearance: textfield; }
+  input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;}
+  input[type=number]{-moz-appearance:textfield;}
 
-  .header { text-align: center; }
-  .header .sub { font-size: 10px; letter-spacing: 6px; color: #475569; margin-bottom: 6px; text-transform: uppercase; }
-  .header h1 {
-    font-size: 26px; font-weight: bold;
-    background: linear-gradient(135deg, #a78bfa, #38bdf8);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  .header{text-align:center;}
+  .header .sub{font-size:10px;letter-spacing:6px;color:#475569;margin-bottom:6px;text-transform:uppercase;}
+  .header h1{
+    font-size:26px;font-weight:bold;
+    background:linear-gradient(135deg,#a78bfa,#38bdf8);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
   }
-  .header .desc { font-size: 11px; color: #475569; margin-top: 4px; }
+  .header .desc{font-size:11px;color:#475569;margin-top:4px;}
 
-  .card {
-    background: #13131b;
-    border: 1px solid #1e293b;
-    border-radius: 16px;
-    padding: 24px;
-    width: 100%;
-    max-width: 420px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+  .card{
+    background:#13131b;border:1px solid #1e293b;border-radius:16px;
+    padding:24px;width:100%;max-width:420px;display:flex;flex-direction:column;gap:16px;
   }
+  .mode-toggle{display:flex;background:#0f0f18;border:1px solid #1e293b;border-radius:10px;padding:4px;gap:4px;}
+  .mode-btn{
+    flex:1;padding:8px;border-radius:7px;border:none;background:transparent;color:#64748b;
+    font-family:inherit;font-size:12px;font-weight:bold;cursor:pointer;transition:all .2s;
+  }
+  .mode-btn.active{background:linear-gradient(135deg,#7c3aed,#0369a1);color:#fff;}
 
-  .mode-toggle {
-    display: flex;
-    background: #0f0f18;
-    border: 1px solid #1e293b;
-    border-radius: 10px;
-    padding: 4px;
-    gap: 4px;
+  .inputs-row{display:flex;gap:12px;align-items:flex-end;}
+  .input-group{flex:1;display:flex;flex-direction:column;gap:8px;}
+  .input-group label{font-size:10px;letter-spacing:3px;color:#64748b;}
+  .input-group input{
+    width:100%;padding:12px;background:#0f0f18;border:2px solid #1e293b;border-radius:10px;
+    color:#e2e8f0;font-size:22px;font-weight:bold;font-family:inherit;text-align:center;outline:none;transition:border-color .2s;
   }
-  .mode-btn {
-    flex: 1; padding: 8px;
-    border-radius: 7px; border: none;
-    background: transparent; color: #64748b;
-    font-family: inherit; font-size: 12px; font-weight: bold;
-    cursor: pointer; transition: all 0.2s; letter-spacing: 0.5px;
-  }
-  .mode-btn.active { background: linear-gradient(135deg, #7c3aed, #0369a1); color: #fff; }
+  #input-to{color:#fbbf24;}
+  .arrow-mid{color:#334155;font-size:22px;padding-bottom:14px;}
 
-  .inputs-row { display: flex; gap: 12px; align-items: flex-end; }
-  .input-group { flex: 1; display: flex; flex-direction: column; gap: 8px; }
-  .input-group label { font-size: 10px; letter-spacing: 3px; color: #64748b; }
-  .input-group input {
-    width: 100%; padding: 12px;
-    background: #0f0f18; border: 2px solid #1e293b;
-    border-radius: 10px; color: #e2e8f0;
-    font-size: 22px; font-weight: bold;
-    font-family: inherit; text-align: center;
-    outline: none; transition: border-color 0.2s;
+  .presets-label{font-size:10px;color:#334155;letter-spacing:2px;margin-bottom:6px;}
+  .presets{display:flex;gap:6px;flex-wrap:wrap;}
+  .preset-btn{
+    padding:4px 12px;border-radius:6px;border:1px solid #1e293b;background:#0f0f18;
+    color:#64748b;cursor:pointer;font-family:inherit;font-size:13px;transition:all .15s;
   }
-  #input-to { color: #fbbf24; }
-  .arrow-mid { color: #334155; font-size: 22px; padding-bottom: 14px; }
+  .preset-btn.active{border-color:#f59e0b;background:#422006;color:#fbbf24;}
 
-  .presets-label { font-size: 10px; color: #334155; letter-spacing: 2px; margin-bottom: 6px; }
-  .presets { display: flex; gap: 6px; flex-wrap: wrap; }
-  .preset-btn {
-    padding: 4px 12px; border-radius: 6px;
-    border: 1px solid #1e293b; background: #0f0f18;
-    color: #64748b; cursor: pointer; font-family: inherit; font-size: 13px; transition: all 0.15s;
-  }
-  .preset-btn.active { border-color: #f59e0b; background: #422006; color: #fbbf24; }
-
-  .all-rooms-notice {
-    background: #0f1a0f; border: 1px solid #16a34a44;
-    border-radius: 8px; padding: 10px 14px;
-    font-size: 12px; color: #86efac; display: none; line-height: 1.6;
+  .all-rooms-notice{
+    background:#0f1a0f;border:1px solid #16a34a44;border-radius:8px;
+    padding:10px 14px;font-size:12px;color:#86efac;display:none;line-height:1.6;
   }
 
-  .find-btn {
-    padding: 13px; border-radius: 10px; border: none;
-    background: linear-gradient(135deg, #7c3aed, #0369a1);
-    color: #fff; font-weight: bold; font-size: 16px;
-    font-family: inherit; cursor: pointer; letter-spacing: 2px; transition: opacity 0.2s;
+  .btn-row{display:flex;gap:8px;}
+  .find-btn{
+    flex:1;padding:13px;border-radius:10px;border:none;
+    background:linear-gradient(135deg,#7c3aed,#0369a1);
+    color:#fff;font-weight:bold;font-size:16px;font-family:inherit;cursor:pointer;letter-spacing:2px;transition:opacity .2s;
   }
-  .find-btn:hover { opacity: 0.85; }
-
-  .error-box {
-    padding: 10px; border-radius: 8px;
-    background: #1c0a0a; border: 1px solid #7f1d1d;
-    color: #fca5a5; font-size: 13px; text-align: center;
+  .find-btn:hover{opacity:.85;}
+  .pip-btn{
+    padding:13px 16px;border-radius:10px;border:1px solid #1e293b;
+    background:#13131b;color:#64748b;font-size:18px;cursor:pointer;transition:all .2s;
+    white-space:nowrap;
   }
+  .pip-btn:hover{border-color:#a78bfa;color:#a78bfa;}
+  .pip-btn.active{border-color:#a78bfa;background:#1e1030;color:#a78bfa;}
 
-  .result-wrap {
-    width: 100%; max-width: 420px;
-    display: flex; flex-direction: column; gap: 12px;
-    animation: fadeIn 0.3s ease;
+  .error-box{
+    padding:10px;border-radius:8px;background:#1c0a0a;border:1px solid #7f1d1d;
+    color:#fca5a5;font-size:13px;text-align:center;
   }
-  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+  .result-wrap{width:100%;max-width:420px;display:flex;flex-direction:column;gap:12px;animation:fadeIn .3s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
 
-  .summary-bar {
-    display: flex; justify-content: space-between; align-items: center;
-    background: #13131b; border: 1px solid #1e293b;
-    border-radius: 12px; padding: 14px 18px;
+  .summary-bar{
+    display:flex;justify-content:space-between;align-items:center;
+    background:#13131b;border:1px solid #1e293b;border-radius:12px;padding:14px 18px;
   }
-  .route-title { font-size: 10px; color: #475569; letter-spacing: 2px; }
-  .route-name { font-size: 18px; font-weight: bold; color: #a78bfa; margin-top: 2px; }
-  .count-label { font-size: 10px; color: #475569; letter-spacing: 2px; text-align: right; }
-  .count-num { font-size: 28px; font-weight: bold; color: #38bdf8; }
-  .count-unit { font-size: 13px; color: #64748b; margin-left: 4px; }
+  .route-title{font-size:10px;color:#475569;letter-spacing:2px;}
+  .route-name{font-size:18px;font-weight:bold;color:#a78bfa;margin-top:2px;}
+  .count-label{font-size:10px;color:#475569;letter-spacing:2px;text-align:right;}
+  .count-num{font-size:28px;font-weight:bold;color:#38bdf8;}
+  .count-unit{font-size:13px;color:#64748b;margin-left:4px;}
 
-  .steps-card {
-    background: #13131b; border: 1px solid #1e293b;
-    border-radius: 12px; padding: 18px;
-    display: flex; flex-direction: column; gap: 6px;
+  .steps-card{
+    background:#13131b;border:1px solid #1e293b;border-radius:12px;
+    padding:18px;display:flex;flex-direction:column;gap:6px;
   }
-  .steps-label { font-size: 10px; color: #475569; letter-spacing: 3px; margin-bottom: 8px; }
-
-  .step-row { display: flex; align-items: center; gap: 10px; }
-  .step-num {
-    width: 24px; height: 24px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 10px; font-weight: bold; flex-shrink: 0;
+  .steps-label{font-size:10px;color:#475569;letter-spacing:3px;margin-bottom:8px;}
+  .step-row{display:flex;align-items:center;gap:10px;}
+  .step-num{
+    width:24px;height:24px;border-radius:50%;display:flex;align-items:center;
+    justify-content:center;font-size:10px;font-weight:bold;flex-shrink:0;
   }
-  .step-num.start { background: #7c3aed; color: #fff; }
-  .step-num.goal { background: transparent; border: 1px solid #f59e0b; color: #fbbf24; }
-  .step-num.mid { background: #1e293b; color: #94a3b8; font-size: 9px; }
-
-  .step-room {
-    flex: 0 0 44px; padding: 6px; border-radius: 8px;
-    text-align: center; font-weight: bold; font-size: 18px;
+  .step-num.start{background:#7c3aed;color:#fff;}
+  .step-num.goal{background:transparent;border:1px solid #f59e0b;color:#fbbf24;}
+  .step-num.mid{background:#1e293b;color:#94a3b8;font-size:9px;}
+  .step-room{flex:0 0 44px;padding:6px;border-radius:8px;text-align:center;font-weight:bold;font-size:18px;}
+  .step-room.start{background:#3b0764;border:1px solid #7c3aed;color:#c4b5fd;}
+  .step-room.goal{background:#422006;border:1px solid #f59e0b;color:#fbbf24;}
+  .step-room.mid{background:#1a1a2e;border:1px solid #2d2d45;color:#94a3b8;}
+  .portal-arrow{display:flex;align-items:center;gap:6px;flex:1;}
+  .portal-line{height:1px;flex:1;}
+  .portal-tag{padding:3px 8px;border-radius:5px;font-size:11px;font-weight:bold;letter-spacing:1px;flex-shrink:0;}
+  .portal-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+  .stat-box{background:#13131b;border-radius:10px;padding:10px;text-align:center;}
+  .stat-name{font-weight:bold;font-size:14px;}
+  .stat-count{font-size:22px;font-weight:bold;color:#e2e8f0;}
+  .stat-unit{font-size:10px;color:#475569;}
+  .loading-box{
+    padding:24px;border-radius:12px;background:#13131b;border:1px solid #1e293b;
+    text-align:center;color:#64748b;font-size:13px;
   }
-  .step-room.start { background: #3b0764; border: 1px solid #7c3aed; color: #c4b5fd; }
-  .step-room.goal  { background: #422006; border: 1px solid #f59e0b; color: #fbbf24; }
-  .step-room.mid   { background: #1a1a2e; border: 1px solid #2d2d45; color: #94a3b8; }
-
-  .portal-arrow { display: flex; align-items: center; gap: 6px; flex: 1; }
-  .portal-line { height: 1px; flex: 1; }
-  .portal-tag {
-    padding: 3px 8px; border-radius: 5px;
-    font-size: 11px; font-weight: bold; letter-spacing: 1px; flex-shrink: 0;
+  .spinner{
+    display:inline-block;width:22px;height:22px;border:2px solid #1e293b;
+    border-top-color:#7c3aed;border-radius:50%;animation:spin .7s linear infinite;margin-bottom:10px;
   }
-
-  .portal-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-  .stat-box { background: #13131b; border-radius: 10px; padding: 10px; text-align: center; }
-  .stat-name { font-weight: bold; font-size: 14px; }
-  .stat-count { font-size: 22px; font-weight: bold; color: #e2e8f0; }
-  .stat-unit { font-size: 10px; color: #475569; }
-
-  .loading-box {
-    padding: 24px; border-radius: 12px;
-    background: #13131b; border: 1px solid #1e293b;
-    text-align: center; color: #64748b; font-size: 13px;
-  }
-  .spinner {
-    display: inline-block; width: 22px; height: 22px;
-    border: 2px solid #1e293b; border-top-color: #7c3aed;
-    border-radius: 50%; animation: spin 0.7s linear infinite; margin-bottom: 10px;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .impossible-box {
-    padding: 18px; border-radius: 12px;
-    background: #1c0a0a; border: 1px solid #7f1d1d;
-    color: #fca5a5; font-size: 13px; text-align: center; line-height: 1.7;
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .impossible-box{
+    padding:18px;border-radius:12px;background:#1c0a0a;border:1px solid #7f1d1d;
+    color:#fca5a5;font-size:13px;text-align:center;line-height:1.7;
   }
 </style>
 </head>
@@ -190,7 +142,6 @@
     <button class="mode-btn active" id="btn-mode-short" onclick="setMode('short')">⚡ 최단 경로</button>
     <button class="mode-btn" id="btn-mode-all" onclick="setMode('all')">🗺️ 모든 방 경유</button>
   </div>
-
   <div class="inputs-row">
     <div class="input-group">
       <label>현재 위치</label>
@@ -202,7 +153,6 @@
       <input id="input-to" type="number" min="1" max="16" value="16" placeholder="16">
     </div>
   </div>
-
   <div id="presets-section">
     <div class="presets-label">목적지 빠른 선택</div>
     <div class="presets">
@@ -213,198 +163,338 @@
       <button class="preset-btn" data-val="13" onclick="setPreset(this)">13</button>
     </div>
   </div>
-
   <div class="all-rooms-notice" id="all-rooms-notice">
-    🗺️ <strong>16개 방을 모두 한 번씩 방문</strong>하고 목적지에서 끝나는 경로를 탐색합니다.<br>
-    출발지/목적지 조합에 따라 경로가 없을 수 있습니다.
+    🗺️ <strong>16개 방을 모두 한 번씩 방문</strong>하고 목적지에서 끝나는 경로를 탐색합니다.
   </div>
-
-  <button class="find-btn" id="find-btn" onclick="findPath()">⚡ 경로 탐색</button>
+  <div class="btn-row">
+    <button class="find-btn" id="find-btn" onclick="findPath()">⚡ 경로 탐색</button>
+    <button class="pip-btn" id="pip-btn" onclick="togglePip()" title="PiP 동선 창 열기">📺 PiP</button>
+  </div>
   <div id="error-box" class="error-box" style="display:none;"></div>
 </div>
 
 <div id="result-wrap" class="result-wrap" style="display:none;"></div>
 
+<!-- PiP 창 HTML (blob으로 새 창에 로드) -->
+<script id="pip-template" type="text/plain">
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>동선 PiP</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{width:100%;height:100%;overflow:hidden;}
+  body{
+    background:#0a0a0f;font-family:'Courier New',monospace;color:#e2e8f0;
+    display:flex;flex-direction:column;user-select:none;
+  }
+  #titlebar{
+    background:#111118;border-bottom:1px solid #1e293b;
+    padding:6px 10px;display:flex;align-items:center;justify-content:space-between;
+    cursor:move;flex-shrink:0;
+  }
+  #titlebar .title{font-size:10px;letter-spacing:3px;color:#475569;}
+  #titlebar .badge{
+    font-size:10px;padding:2px 8px;border-radius:4px;
+    background:#7c3aed22;border:1px solid #7c3aed55;color:#a78bfa;
+  }
+  #content{flex:1;overflow-y:auto;padding:10px 8px;display:flex;flex-direction:column;gap:4px;}
+  #content::-webkit-scrollbar{width:4px;}
+  #content::-webkit-scrollbar-track{background:#0a0a0f;}
+  #content::-webkit-scrollbar-thumb{background:#1e293b;border-radius:2px;}
+
+  .waiting{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    color:#334155;font-size:11px;text-align:center;gap:8px;
+  }
+  .waiting .icon{font-size:28px;}
+
+  .step{
+    display:flex;align-items:center;gap:6px;
+    padding:4px 2px;border-bottom:1px solid #1e293b11;
+  }
+  .step:last-child{border-bottom:none;}
+  .idx{
+    font-size:9px;color:#334155;width:16px;text-align:right;flex-shrink:0;
+  }
+  .room-box{
+    width:30px;height:30px;border-radius:6px;display:flex;align-items:center;
+    justify-content:center;font-weight:bold;font-size:14px;flex-shrink:0;
+  }
+  .room-box.s{background:#3b0764;border:1px solid #7c3aed;color:#c4b5fd;}
+  .room-box.g{background:#422006;border:1px solid #f59e0b;color:#fbbf24;}
+  .room-box.m{background:#13131b;border:1px solid #2d2d45;color:#94a3b8;}
+  .arrow-wrap{flex:1;display:flex;align-items:center;gap:4px;}
+  .arrow-line{flex:1;height:1px;}
+  .portal-lbl{font-size:10px;font-weight:bold;padding:2px 5px;border-radius:4px;white-space:nowrap;}
+
+  .footer{
+    background:#111118;border-top:1px solid #1e293b;padding:5px 10px;
+    display:flex;justify-content:space-between;align-items:center;flex-shrink:0;
+  }
+  .footer .info{font-size:10px;color:#475569;}
+  .footer .count{font-size:13px;font-weight:bold;color:#38bdf8;}
+
+  /* current step highlight */
+  .step.done .room-box.m{background:#0a2010;border-color:#059669;color:#86efac;}
+  .step.done .arrow-line{opacity:.3;}
+  .step.done .portal-lbl{opacity:.3;}
+
+  #progress-bar{height:2px;background:#1e293b;flex-shrink:0;}
+  #progress-fill{height:100%;background:linear-gradient(to right,#7c3aed,#38bdf8);width:0%;transition:width .3s;}
+</style>
+</head>
+<body>
+<div id="titlebar">
+  <span class="title">🗺 동선 PiP</span>
+  <span class="badge" id="mode-badge">대기중</span>
+</div>
+<div id="progress-bar"><div id="progress-fill"></div></div>
+<div id="content">
+  <div class="waiting">
+    <div class="icon">🧭</div>
+    <div>메인 창에서<br>경로를 탐색하면<br>여기에 표시됩니다</div>
+  </div>
+</div>
+<div class="footer">
+  <span class="info" id="footer-info">경로 없음</span>
+  <span class="count" id="footer-count"></span>
+</div>
+
 <script>
-const PORTALS = {
-  "중": {1:8,2:9,3:10,4:11,5:12,6:13,7:14,8:15,9:16,10:2,11:3,12:4,13:5,14:6,15:7,16:9},
-  "우": {7:4,4:1,1:13,13:10,10:7,14:11,11:8,8:5,5:2,2:14,6:3,3:15,15:12,12:9,9:6},
-  "좌": {7:11,11:15,15:4,4:8,8:12,12:1,1:5,5:9,9:13,13:2,2:6,6:10,10:14,14:3,3:7}
+const PORTAL_COLORS={
+  "좌":{main:"#059669",dark:"#065f46"},
+  "중":{main:"#7c3aed",dark:"#4c1d95"},
+  "우":{main:"#0369a1",dark:"#0c4a6e"}
 };
-const PORTAL_LABELS = ["좌","중","우"];
-const PORTAL_COLORS = {
-  "좌": { main:"#059669", dark:"#065f46" },
-  "중": { main:"#7c3aed", dark:"#4c1d95" },
-  "우": { main:"#0369a1", dark:"#0c4a6e" },
+let currentStep=0;
+let totalSteps=0;
+
+const ch=new BroadcastChannel('maze_pip');
+ch.onmessage=function(e){
+  const {path,start,goal,isAllRooms}=e.data;
+  renderPath(path,start,goal,isAllRooms);
 };
 
-let currentMode = 'short';
+function renderPath(path,start,goal,isAllRooms){
+  totalSteps=path.length-1;
+  currentStep=0;
+  document.getElementById('mode-badge').textContent=isAllRooms?'전체방':'최단';
+  document.getElementById('footer-info').textContent=start+'번 → '+goal+'번'+(goal===16?' 🏆':'');
+  document.getElementById('footer-count').textContent=totalSteps+'회 이동';
+  document.getElementById('progress-fill').style.width='0%';
 
-function setMode(mode) {
-  currentMode = mode;
-  document.getElementById('btn-mode-short').classList.toggle('active', mode==='short');
-  document.getElementById('btn-mode-all').classList.toggle('active', mode==='all');
-  document.getElementById('all-rooms-notice').style.display = mode==='all' ? 'block' : 'none';
-  document.getElementById('result-wrap').style.display = 'none';
-  document.getElementById('error-box').style.display = 'none';
-  document.getElementById('find-btn').textContent = mode==='all' ? '🗺️ 전체 경로 탐색' : '⚡ 경로 탐색';
+  const c=document.getElementById('content');
+  c.innerHTML='';
+
+  path.forEach((step,i)=>{
+    const isFirst=i===0,isLast=i===path.length-1;
+    const div=document.createElement('div');
+    div.className='step';
+    div.dataset.index=i;
+
+    const boxCls=isFirst?'s':isLast?'g':'m';
+    const idxLabel=isFirst?'S':isLast?'G':i;
+
+    let arrowHtml='';
+    if(!isLast&&step.portal){
+      const pc=PORTAL_COLORS[step.portal];
+      arrowHtml=`<div class="arrow-wrap">
+        <div class="arrow-line" style="background:linear-gradient(to right,${pc.main}44,${pc.main})"></div>
+        <div class="portal-lbl" style="background:${pc.dark};border:1px solid ${pc.main};color:${pc.main}">${step.portal}</div>
+      </div>`;
+    }
+
+    div.innerHTML=`
+      <div class="idx">${idxLabel}</div>
+      <div class="room-box ${boxCls}">${step.room}${isLast&&goal===16?'🏆':''}</div>
+      ${arrowHtml}`;
+
+    // click to mark as visited
+    div.addEventListener('click',()=>markStep(i));
+    c.appendChild(div);
+  });
 }
 
-// BFS 최단경로
-function bfs(start, goal) {
-  if (start === goal) return [{ room:start, portal:null }];
-  const queue = [[start, [{room:start,portal:null}]]];
-  const visited = new Set([start]);
-  while (queue.length > 0) {
-    const [cur, path] = queue.shift();
-    for (const portal of PORTAL_LABELS) {
-      const next = PORTALS[portal][cur];
-      if (!next) continue;
-      const newPath = [...path, {room:next, portal}];
-      if (next === goal) return newPath;
-      if (!visited.has(next)) { visited.add(next); queue.push([next, newPath]); }
+function markStep(idx){
+  const steps=document.querySelectorAll('.step');
+  steps.forEach((s,i)=>{
+    s.classList.toggle('done',i<idx);
+  });
+  currentStep=idx;
+  const pct=totalSteps>0?Math.round((idx/totalSteps)*100):0;
+  document.getElementById('progress-fill').style.width=pct+'%';
+}
+<\/script>
+</body>
+</html>
+</script>
+
+<script>
+const PORTALS={
+  "중":{1:8,2:9,3:10,4:11,5:12,6:13,7:14,8:15,9:16,10:2,11:3,12:4,13:5,14:6,15:7,16:9},
+  "우":{7:4,4:1,1:13,13:10,10:7,14:11,11:8,8:5,5:2,2:14,6:3,3:15,15:12,12:9,9:6},
+  "좌":{7:11,11:15,15:4,4:8,8:12,12:1,1:5,5:9,9:13,13:2,2:6,6:10,10:14,14:3,3:7}
+};
+const PORTAL_LABELS=["좌","중","우"];
+const PORTAL_COLORS={
+  "좌":{main:"#059669",dark:"#065f46"},
+  "중":{main:"#7c3aed",dark:"#4c1d95"},
+  "우":{main:"#0369a1",dark:"#0c4a6e"}
+};
+
+let currentMode='short';
+let pipWindow=null;
+const channel=new BroadcastChannel('maze_pip');
+
+function setMode(mode){
+  currentMode=mode;
+  document.getElementById('btn-mode-short').classList.toggle('active',mode==='short');
+  document.getElementById('btn-mode-all').classList.toggle('active',mode==='all');
+  document.getElementById('all-rooms-notice').style.display=mode==='all'?'block':'none';
+  document.getElementById('result-wrap').style.display='none';
+  document.getElementById('error-box').style.display='none';
+  document.getElementById('find-btn').textContent=mode==='all'?'🗺️ 전체 경로 탐색':'⚡ 경로 탐색';
+}
+
+function togglePip(){
+  const btn=document.getElementById('pip-btn');
+  if(pipWindow&&!pipWindow.closed){
+    pipWindow.close();
+    pipWindow=null;
+    btn.classList.remove('active');
+    btn.textContent='📺 PiP';
+    return;
+  }
+  const pipHtml=document.getElementById('pip-template').textContent;
+  const blob=new Blob([pipHtml],{type:'text/html'});
+  const url=URL.createObjectURL(blob);
+  pipWindow=window.open(url,'maze_pip',
+    'width=260,height=480,top=50,left=50,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no,status=no'
+  );
+  btn.classList.add('active');
+  btn.textContent='📺 PiP 켜짐';
+  setTimeout(()=>URL.revokeObjectURL(url),3000);
+}
+
+function bfs(start,goal){
+  if(start===goal)return[{room:start,portal:null}];
+  const queue=[[start,[{room:start,portal:null}]]];
+  const visited=new Set([start]);
+  while(queue.length>0){
+    const[cur,path]=queue.shift();
+    for(const portal of PORTAL_LABELS){
+      const next=PORTALS[portal][cur];
+      if(!next)continue;
+      const newPath=[...path,{room:next,portal}];
+      if(next===goal)return newPath;
+      if(!visited.has(next)){visited.add(next);queue.push([next,newPath]);}
     }
   }
   return null;
 }
 
-// 해밀턴 경로 (백트래킹 DFS)
-function findHamiltonianPath(start, goal) {
-  const path = [{room:start, portal:null}];
-  const visited = new Set([start]);
-
-  function dfs() {
-    const cur = path[path.length-1].room;
-    if (visited.size === 16 && cur === goal) return true;
-    for (const portal of PORTAL_LABELS) {
-      const next = PORTALS[portal][cur];
-      if (!next || visited.has(next)) continue;
-      // goal은 마지막(16번째) 방문에서만 허용
-      if (next === goal && visited.size < 15) continue;
-      path.push({room:next, portal});
-      visited.add(next);
-      if (dfs()) return true;
-      path.pop();
-      visited.delete(next);
+function findHamiltonianPath(start,goal){
+  const path=[{room:start,portal:null}];
+  const visited=new Set([start]);
+  function dfs(){
+    const cur=path[path.length-1].room;
+    if(visited.size===16&&cur===goal)return true;
+    for(const portal of PORTAL_LABELS){
+      const next=PORTALS[portal][cur];
+      if(!next||visited.has(next))continue;
+      if(next===goal&&visited.size<15)continue;
+      path.push({room:next,portal});visited.add(next);
+      if(dfs())return true;
+      path.pop();visited.delete(next);
     }
     return false;
   }
-
-  return dfs() ? path : null;
+  return dfs()?path:null;
 }
 
-function setPreset(btn) {
-  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+function setPreset(btn){
+  document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById('input-to').value = btn.dataset.val;
+  document.getElementById('input-to').value=btn.dataset.val;
 }
-
-document.getElementById('input-to').addEventListener('input', function() {
-  document.querySelectorAll('.preset-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.val === this.value);
-  });
+document.getElementById('input-to').addEventListener('input',function(){
+  document.querySelectorAll('.preset-btn').forEach(b=>b.classList.toggle('active',b.dataset.val===this.value));
 });
+document.addEventListener('keydown',e=>{if(e.key==='Enter')findPath();});
 
-document.addEventListener('keydown', e => { if (e.key==='Enter') findPath(); });
-
-function showError(msg) {
-  const box = document.getElementById('error-box');
-  box.textContent = '⚠️ ' + msg;
-  box.style.display = 'block';
-  document.getElementById('result-wrap').style.display = 'none';
+function showError(msg){
+  const box=document.getElementById('error-box');
+  box.textContent='⚠️ '+msg;box.style.display='block';
+  document.getElementById('result-wrap').style.display='none';
 }
 
-function findPath() {
-  const fromVal = document.getElementById('input-from').value;
-  const toVal   = document.getElementById('input-to').value;
-  document.getElementById('error-box').style.display = 'none';
+function findPath(){
+  const fromVal=document.getElementById('input-from').value;
+  const toVal=document.getElementById('input-to').value;
+  document.getElementById('error-box').style.display='none';
+  const start=parseInt(fromVal),goal=parseInt(toVal);
+  if(!fromVal||isNaN(start)||start<1||start>16)return showError('현재 위치를 1~16 사이로 입력해주세요.');
+  if(!toVal||isNaN(goal)||goal<1||goal>16)return showError('목적지를 1~16 사이로 입력해주세요.');
+  if(start===goal)return showError('현재 위치와 목적지가 같아요!');
 
-  const start = parseInt(fromVal);
-  const goal  = parseInt(toVal);
-
-  if (!fromVal||isNaN(start)||start<1||start>16) return showError('현재 위치를 1~16 사이로 입력해주세요.');
-  if (!toVal||isNaN(goal)||goal<1||goal>16)       return showError('목적지를 1~16 사이로 입력해주세요.');
-  if (start===goal) return showError('현재 위치와 목적지가 같아요!');
-
-  if (currentMode==='short') {
-    const path = bfs(start, goal);
-    if (!path) return showError('해당 목적지에 도달할 수 없어요.');
-    renderResult(start, goal, path, false);
-  } else {
-    const wrap = document.getElementById('result-wrap');
-    wrap.innerHTML = `<div class="loading-box"><div class="spinner"></div><br>전체 경로 탐색 중...<br><span style="font-size:11px;color:#334155">최대 16개 방 조합 탐색</span></div>`;
-    wrap.style.display = 'flex';
-    setTimeout(() => {
-      const path = findHamiltonianPath(start, goal);
-      if (!path) {
-        wrap.innerHTML = `<div class="impossible-box">
-          ❌ <strong>${start}번</strong>에서 출발해 모든 방을 한 번씩 방문하고<br>
-          <strong>${goal}번</strong>으로 끝나는 경로가 <strong>존재하지 않습니다</strong>.<br><br>
-          <span style="color:#f87171;font-size:11px">출발지 또는 목적지를 바꿔보세요.</span>
-        </div>`;
-      } else {
-        renderResult(start, goal, path, true);
+  if(currentMode==='short'){
+    const path=bfs(start,goal);
+    if(!path)return showError('해당 목적지에 도달할 수 없어요.');
+    renderResult(start,goal,path,false);
+    sendToPip(path,start,goal,false);
+  }else{
+    const wrap=document.getElementById('result-wrap');
+    wrap.innerHTML=`<div class="loading-box"><div class="spinner"></div><br>전체 경로 탐색 중...</div>`;
+    wrap.style.display='flex';
+    setTimeout(()=>{
+      const path=findHamiltonianPath(start,goal);
+      if(!path){
+        wrap.innerHTML=`<div class="impossible-box">❌ <strong>${start}번</strong>에서 출발해 모든 방을 방문하고<br><strong>${goal}번</strong>으로 끝나는 경로가 없습니다.<br><span style="color:#f87171;font-size:11px">출발지/목적지를 바꿔보세요.</span></div>`;
+      }else{
+        renderResult(start,goal,path,true);
+        sendToPip(path,start,goal,true);
       }
-    }, 50);
+    },50);
   }
 }
 
-function renderResult(start, goal, path, isAllRooms) {
-  const steps = path.length - 1;
-  const portalCount = {"좌":0,"중":0,"우":0};
-  path.forEach(s => { if (s.portal) portalCount[s.portal]++; });
+function sendToPip(path,start,goal,isAllRooms){
+  channel.postMessage({path,start,goal,isAllRooms});
+}
 
-  let stepsHtml = '';
-  path.forEach((step, i) => {
-    const isFirst = i===0, isLast = i===path.length-1;
-    const roomClass = isFirst?'start':isLast?'goal':'mid';
-    const numClass  = isFirst?'start':isLast?'goal':'mid';
-    const numLabel  = isFirst?'S':isLast?'G':i;
-    let arrowHtml = '';
-    if (!isLast && step.portal) {
-      const pc = PORTAL_COLORS[step.portal];
-      arrowHtml = `<div class="portal-arrow">
-        <div class="portal-line" style="background:linear-gradient(to right,${pc.main}55,${pc.main})"></div>
-        <div class="portal-tag" style="background:${pc.dark};border:1px solid ${pc.main};color:${pc.main}">${step.portal} →</div>
-      </div>`;
+function renderResult(start,goal,path,isAllRooms){
+  const steps=path.length-1;
+  const portalCount={"좌":0,"중":0,"우":0};
+  path.forEach(s=>{if(s.portal)portalCount[s.portal]++;});
+  let stepsHtml='';
+  path.forEach((step,i)=>{
+    const isFirst=i===0,isLast=i===path.length-1;
+    const roomClass=isFirst?'start':isLast?'goal':'mid';
+    const numClass=isFirst?'start':isLast?'goal':'mid';
+    const numLabel=isFirst?'S':isLast?'G':i;
+    let arrowHtml='';
+    if(!isLast&&step.portal){
+      const pc=PORTAL_COLORS[step.portal];
+      arrowHtml=`<div class="portal-arrow"><div class="portal-line" style="background:linear-gradient(to right,${pc.main}55,${pc.main})"></div><div class="portal-tag" style="background:${pc.dark};border:1px solid ${pc.main};color:${pc.main}">${step.portal} →</div></div>`;
     }
-    stepsHtml += `<div class="step-row">
-      <div class="step-num ${numClass}">${numLabel}</div>
-      <div class="step-room ${roomClass}">${step.room}${isLast&&goal===16?' 🏆':''}</div>
-      ${arrowHtml}
-    </div>`;
+    stepsHtml+=`<div class="step-row"><div class="step-num ${numClass}">${numLabel}</div><div class="step-room ${roomClass}">${step.room}${isLast&&goal===16?' 🏆':''}</div>${arrowHtml}</div>`;
   });
-
-  const statsHtml = PORTAL_LABELS.map(p => {
-    const pc = PORTAL_COLORS[p], used = portalCount[p]>0;
-    return `<div class="stat-box" style="border:1px solid ${used?pc.main+'55':'#1e293b'};opacity:${used?1:0.4}">
-      <div class="stat-name" style="color:${pc.main}">${p} 포탈</div>
-      <div class="stat-count">${portalCount[p]}</div>
-      <div class="stat-unit">회 사용</div>
-    </div>`;
+  const statsHtml=PORTAL_LABELS.map(p=>{
+    const pc=PORTAL_COLORS[p],used=portalCount[p]>0;
+    return`<div class="stat-box" style="border:1px solid ${used?pc.main+'55':'#1e293b'};opacity:${used?1:0.4}"><div class="stat-name" style="color:${pc.main}">${p} 포탈</div><div class="stat-count">${portalCount[p]}</div><div class="stat-unit">회 사용</div></div>`;
   }).join('');
-
-  const modeTag = isAllRooms
-    ? `<span style="color:#86efac;font-size:11px;display:block;margin-top:3px">🗺️ 16개 방 전체 경유</span>` : '';
-
-  document.getElementById('result-wrap').innerHTML = `
+  const modeTag=isAllRooms?`<span style="color:#86efac;font-size:11px;display:block;margin-top:3px">🗺️ 16개 방 전체 경유</span>`:'';
+  const wrap=document.getElementById('result-wrap');
+  wrap.innerHTML=`
     <div class="summary-bar">
-      <div>
-        <div class="route-title">${isAllRooms?'전체 방 경유 경로':'최단 경로'}</div>
-        <div class="route-name">${start}번 → ${goal}번${goal===16?' 🏆':''}</div>
-        ${modeTag}
-      </div>
-      <div>
-        <div class="count-label">포탈 이동</div>
-        <div><span class="count-num">${steps}</span><span class="count-unit">회</span></div>
-      </div>
+      <div><div class="route-title">${isAllRooms?'전체 방 경유':'최단 경로'}</div><div class="route-name">${start}번 → ${goal}번${goal===16?' 🏆':''}</div>${modeTag}</div>
+      <div><div class="count-label">포탈 이동</div><div><span class="count-num">${steps}</span><span class="count-unit">회</span></div></div>
     </div>
-    <div class="steps-card">
-      <div class="steps-label">STEP BY STEP</div>
-      ${stepsHtml}
-    </div>
+    <div class="steps-card"><div class="steps-label">STEP BY STEP</div>${stepsHtml}</div>
     <div class="portal-stats">${statsHtml}</div>`;
-  document.getElementById('result-wrap').style.display = 'flex';
+  wrap.style.display='flex';
 }
 </script>
 </body>
